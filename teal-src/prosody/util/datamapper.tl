@@ -25,7 +25,7 @@ local st = require "prosody.util.stanza";
 local json = require "prosody.util.json"
 local pointer = require "prosody.util.jsonpointer";
 
-local json_type_name = json.json_type_name;
+local type json_type_name = json.json_type_name;
 local json_schema_object = require "prosody.util.jsonschema"
 local type schema_t = boolean | json_schema_object
 
@@ -95,8 +95,6 @@ local function unpack_propschema( propschema : schema_t, propname : string, curr
 
 	if propschema is json_schema_object then
 		proptype = guess_schema_type(propschema);
-	elseif propschema is string then -- Teal says this can never be a string, but it could before so best be sure
-		error("schema as string is not supported: "..propschema.." {"..current_ns.."}"..propname)
 	end
 
 	if proptype == "object" or proptype == "array" then
@@ -269,7 +267,7 @@ local function toxmlstring(proptype : json_type_name, v : any) : string
 		return  v
 	elseif proptype == "number" and v is number then
 		return  string.format("%g", v)
-	elseif proptype == "integer" and v is number then -- TODO is integer
+	elseif proptype == "integer" and v is integer then
 		return  string.format("%d", v)
 	elseif proptype == "boolean" then
 		return  v and "1" or "0"
