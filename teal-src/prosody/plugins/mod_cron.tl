@@ -36,6 +36,10 @@ end
 
 local active_hosts : { string : boolean } = {  }
 
+if prosody.process_type == "prosodyctl" then
+	return -- Yes, it happens...
+end
+
 function module.add_host(host_module : moduleapi)
 
 	local last_run_times = host_module:open_store("cron", "map") as map_store<string,integer>;
@@ -122,7 +126,7 @@ module:add_item("shell-command", {
 	args = {};
 	handler = function (self, filter_host : string)
 		local format_table = require "prosody.util.human.io".table;
-		local it = require "util.iterators";
+		local it = require "prosody.util.iterators";
 		local row = format_table({
 			{ title = "Host", width = "2p" };
 			{ title = "Task", width = "3p" };
