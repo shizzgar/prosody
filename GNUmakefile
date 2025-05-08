@@ -142,6 +142,7 @@ vpath %.tl teal-src/prosody
 %.lua: %.tl
 	tl -I teal-src/ --gen-compat off --gen-target 5.1 gen $^ -o $@
 	-lua-format -i --no-keep-simple-control-block-one-line --no-keep-simple-function-one-line $@
+	sed -i "1i-- This file is generated from $<" $@
 
 teal: util/jsonschema.lua util/datamapper.lua util/jsonpointer.lua
 
