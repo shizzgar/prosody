@@ -94,7 +94,7 @@ local function render(template : string, root : st.stanza_t, escape : escape_t, 
 
 		if value is string then
 			if not is_escaped then value = escape(value); end
-			return pre_blank .. value .. post_blank
+			return pre_blank .. (value as string) .. post_blank
 		elseif st.is_stanza(value) then
 			value = value:get_text();
 			if value then
