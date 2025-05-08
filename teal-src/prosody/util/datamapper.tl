@@ -42,7 +42,7 @@ end
 local function totype(t : json_type_name, s : string) : any
 	if not s then return nil end
 	if t == "string" then
-		return s;
+		return s
 	elseif t == "boolean" then
 		return toboolean(s)
 	elseif t == "number" or t == "integer" then
@@ -63,10 +63,10 @@ end
 local function resolve_schema(schema  : schema_t, root : json_schema_object) : schema_t
 	if schema is json_schema_object then
 		if schema["$ref"] and schema["$ref"]:sub(1, 1) == "#" then
-			return pointer.resolve(root as table, schema["$ref"]:sub(2)) as schema_t;
+			return pointer.resolve(root as table, schema["$ref"]:sub(2)) as schema_t
 		end
 	end
-	return schema;
+	return schema
 end
 
 local function guess_schema_type(schema : json_schema_object) : json_type_name
@@ -158,7 +158,7 @@ local function extract_value (s : st.stanza_t, value_where : value_goes, proptyp
 			c = s:get_child(nil, namespace);
 		end
 		if c then
-			return c.name;
+			return c.name
 		end
 	elseif value_where == "in_attribute" then
 		local attr = name
@@ -250,7 +250,7 @@ function parse_array (schema : json_schema_object, s : st.stanza_t, root : json_
 			table.insert(out, totype(proptype, value));
 		end
 	end
-	return out;
+	return out
 end
 
 local function parse (schema : json_schema_object, s : st.stanza_t) : table
@@ -361,7 +361,7 @@ function unparse ( schema : json_schema_object, t : table, current_name : string
 				unparse_property(out, v, proptype, propschema, value_where, name, namespace, current_ns, prefix, single_attribute, root)
 			end
 		end
-		return out;
+		return out
 
 	elseif s_type == "array" then
 		local itemschema = resolve_schema(schema.items, root)
@@ -369,7 +369,7 @@ function unparse ( schema : json_schema_object, t : table, current_name : string
 		for _, item in ipairs(t as { string }) do
 			unparse_property(out, item, proptype, itemschema, value_where, name, namespace, current_ns, prefix, single_attribute, root)
 		end
-		return out;
+		return out
 	end
 end
 

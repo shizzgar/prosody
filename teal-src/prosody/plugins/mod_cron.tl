@@ -63,13 +63,13 @@ function module.add_host(host_module : moduleapi)
 		task.restore = restore_task;
 		task.save = save_task;
 		module:log("debug", "%s task %s added", task.when, task.id);
-		return true;
+		return true
 	end
 
 	local function task_removed(event : task_event) : boolean
 		local task = event.item;
 		host_module:log("debug", "Task %s removed", task.id);
-		return true;
+		return true
 	end
 
 	host_module:handle_items("task", task_added, task_removed, true);
@@ -80,13 +80,13 @@ function module.add_host(host_module : moduleapi)
 end
 
 local function should_run(task : task_spec, last : integer) : boolean
-	return not last or last + task.period * 0.995 <= os.time();
+	return not last or last + task.period * 0.995 <= os.time()
 end
 
 local function run_task(task : task_spec)
 	task:restore();
 	if not should_run(task, task.last) then
-		return;
+		return
 	end
 	local started_at = os.time();
 	task:run(started_at);
@@ -95,7 +95,7 @@ local function run_task(task : task_spec)
 end
 
 local function spread(t : number, factor : number) : number
-	return t * (1 - factor + 2*factor*math.random());
+	return t * (1 - factor + 2*factor*math.random())
 end
 
 local task_runner : async.runner_t<task_spec> = async.runner(run_task);
@@ -109,7 +109,7 @@ scheduled = module:add_timer(cron_initial_delay, function() : number
 		end
 	end
 	module:log("debug", "Wait %gs", delay);
-	return delay;
+	return delay
 end);
 
 -- TODO measure load, pick a good time to do stuff

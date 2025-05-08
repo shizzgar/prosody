@@ -33,9 +33,9 @@ end
 
 function smqueue:ack(h : integer) : { T }, smqueue.ack_errors
 	if h < self._tail then
-		return nil, "tail";
+		return nil, "tail"
 	elseif h > self._head then
-		return nil, "head";
+		return nil, "head"
 	end
 	-- TODO optimize? cache table fields
 	local acked = {};
@@ -43,26 +43,28 @@ function smqueue:ack(h : integer) : { T }, smqueue.ack_errors
 	local expect = self._head - self._tail;
 	while expect < self._queue:count() do
 		local v = self._queue:pop();
-		if not v then return nil, "pop"; end
+		if not v then
+			return nil, "pop"
+		end
 		table.insert(acked, v);
 	end
-	return acked;
+	return acked
 end
 
 function smqueue:count_unacked() : integer
-	return self._head - self._tail;
+	return self._head - self._tail
 end
 
 function smqueue:count_acked() : integer
-	return self._tail;
+	return self._tail
 end
 
 function smqueue:resumable() : boolean
-	return self._queue:count() >= (self._head - self._tail);
+	return self._queue:count() >= (self._head - self._tail)
 end
 
 function smqueue:resume() : queue.queue.iterator, any, integer
-	return self._queue:items();
+	return self._queue:items()
 end
 
 function smqueue:consume() : (function() : T)
@@ -75,7 +77,7 @@ function smqueue:table() : { T }
 	for i, v in self:resume() do
 		t[i] = v;
 	end
-	return t;
+	return t
 end
 
 local function freeze(q : smqueue<any>) : { string:integer }
@@ -92,7 +94,7 @@ local queue_mt = {
 
 function lib.new<T>(size : integer) : smqueue<T>
 	assert(size>0);
-	return setmetatable({ _head = 0; _tail = 0; _queue = queue.new(size, true) }, queue_mt);
+	return setmetatable({ _head = 0; _tail = 0; _queue = queue.new(size, true) }, queue_mt)
 end
 
-return lib;
+return lib
