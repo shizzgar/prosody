@@ -1,5 +1,4 @@
--- This file is generated from teal-src/util/jsonschema.lua
-
+-- This file is generated from teal-src/prosody/util/jsonschema.tl
 if not math.type then
 	require("prosody.util.mathcompat")
 end
