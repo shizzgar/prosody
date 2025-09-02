@@ -7,6 +7,7 @@ local it = require "prosody.util.iterators";
 local uuid_generate = require "prosody.util.uuid".generate;
 local dataform = require"prosody.util.dataforms".new;
 local errors = require "prosody.util.error";
+local rsm = require "prosody.util.rsm";
 
 local xmlns_pubsub = "http://jabber.org/protocol/pubsub";
 local xmlns_pubsub_errors = "http://jabber.org/protocol/pubsub#errors";
@@ -232,7 +233,7 @@ local service_method_feature_map = {
 	add_subscription = { "subscribe", "subscription-options" };
 	create = { "create-nodes", "instant-nodes", "item-ids", "create-and-configure" };
 	delete = { "delete-nodes" };
-	get_items = { "retrieve-items" };
+get_items = { "retrieve-items", "rsm" };
 	get_subscriptions = { "retrieve-subscriptions" };
 	node_defaults = { "retrieve-default" };
 	publish = { "publish", "multi-items", "publish-options" };
@@ -359,11 +360,18 @@ function handlers.get_items(origin, stanza, items, service)
 		return true;
 	end
 
-	local resultspec; -- TODO rsm.get()
-	if items.attr.max_items then
-		resultspec = { max = tonumber(items.attr.max_items) };
-	end
-	local ok, results = service:get_items(node, stanza.attr.from, requested_items, resultspec);
+local resultspec;
+if items.attr.max_items then
+resultspec = { max = tonumber(items.attr.max_items) };
+end
+local rsm_request = rsm.get(items);
+if rsm_request then
+resultspec = resultspec or {};
+for k, v in pairs(rsm_request) do
+resultspec[k] = v;
+end
+end
+local ok, results, rsm_reply = service:get_items(node, stanza.attr.from, requested_items, resultspec);
 	if not ok then
 		origin.send(pubsub_error_reply(stanza, results));
 		return true;
@@ -389,10 +397,13 @@ function handlers.get_items(origin, stanza, items, service)
 		end
 		data:add_child(item);
 	end
-	local reply = st.reply(stanza)
-		:tag("pubsub", { xmlns = xmlns_pubsub })
-			:add_child(data);
-	origin.send(reply);
+local reply = st.reply(stanza)
+:tag("pubsub", { xmlns = xmlns_pubsub })
+:add_child(data);
+if rsm_request and rsm_reply then
+reply.tags[1]:add_child(rsm.generate(rsm_reply));
+end
+origin.send(reply);
 	return true;
 end
 
@@ -868,7 +879,7 @@ end
 
 local function archive_itemstore(archive, max_items, user, node)
 	module:log("debug", "Creation of archive itemstore for node %s with limit %d", node, max_items);
-	local get_set = {};
+local get_set = { _archive = archive, _user = user };
 	function get_set:items() -- luacheck: ignore 212/self
 		local data, err = archive:find(user, {
 			limit = tonumber(max_items);
