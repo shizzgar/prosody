@@ -167,11 +167,43 @@ function archive:find(username, query)
 		end;
 	end
 
-	local i = 0;
-	local iter = function()
-		i = i + 1;
-		return list[i]
-	end
+        local total;
+        if query and query.total then
+                local ids;
+                total = 0;
+                for j = 1, #list do
+                        local item = list[j];
+                        local match = true;
+                        if query.key and item.key ~= query.key then
+                                match = false;
+                        end
+                        if match and query.ids then
+                                ids = ids or set.new(query.ids);
+                                match = ids:contains(item.key);
+                        end
+                        if match and query.with and item.with ~= query.with then
+                                match = false;
+                        end
+                        if match and (query.start or query["end"]) then
+                                local when = item.when or datetime.parse(item.attr.stamp);
+                                if query.start and when < query.start then
+                                        match = false;
+                                end
+                                if match and query["end"] and when > query["end"] then
+                                        match = false;
+                                end
+                        end
+                        if match then
+                                total = total + 1;
+                        end
+                end
+        end
+
+        local i = 0;
+        local iter = function()
+                i = i + 1;
+                return list[i]
+        end
 
 	if query then
 		if query.reverse then
@@ -250,24 +282,24 @@ function archive:find(username, query)
 		end
 	end
 
-	return function()
-		local item = iter();
-		if item == nil then
-			if list.close then
-				list:close();
-			end
-			return
-		end
-		local key = item.key;
-		local when = item.when or item.attr and datetime.parse(item.attr.stamp);
-		local with = item.with;
-		item.key, item.when, item.with = nil, nil, nil;
-		item.attr.stamp = nil;
-		-- COMPAT Stored data may still contain legacy XEP-0091 timestamp
-		item.attr.stamp_legacy = nil;
-		item = st.deserialize(item);
-		return key, item, when, with;
-	end
+        return function()
+                local item = iter();
+                if item == nil then
+                        if list.close then
+                                list:close();
+                        end
+                        return
+                end
+                local key = item.key;
+                local when = item.when or item.attr and datetime.parse(item.attr.stamp);
+                local with = item.with;
+                item.key, item.when, item.with = nil, nil, nil;
+                item.attr.stamp = nil;
+                -- COMPAT Stored data may still contain legacy XEP-0091 timestamp
+                item.attr.stamp_legacy = nil;
+                item = st.deserialize(item);
+                return key, item, when, with;
+        end, total
 end
 
 function archive:get(username, wanted_key)
