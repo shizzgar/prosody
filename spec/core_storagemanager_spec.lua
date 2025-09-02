@@ -362,22 +362,27 @@ describe("storagemanager", function ()
 				end);
 
 				describe("can be queried", function ()
-					it("for all items", function ()
-						-- luacheck: ignore 211/err
-						local data, err = archive:find("user", {});
-						assert.truthy(data);
-						local count = 0;
-						for id, item, when in data do
-							count = count + 1;
-							assert.truthy(id);
-							assert(st.is_stanza(item));
-							assert.equal("test", item.name);
-							assert.equal("urn:example:foo", item.attr.xmlns);
-							assert.equal(2, #item.tags);
-							assert.equal(test_data[count][3], when);
-						end
-						assert.equal(#test_data, count);
-					end);
+                                        it("for all items", function ()
+                                                -- luacheck: ignore 211/err
+                                                local data, err = archive:find("user", {});
+                                                assert.truthy(data);
+                                                local count = 0;
+                                                for id, item, when in data do
+                                                        count = count + 1;
+                                                        assert.truthy(id);
+                                                        assert(st.is_stanza(item));
+                                                        assert.equal("test", item.name);
+                                                        assert.equal("urn:example:foo", item.attr.xmlns);
+                                                        assert.equal(2, #item.tags);
+                                                        assert.equal(test_data[count][3], when);
+                                                end
+                                                assert.equal(#test_data, count);
+                                        end);
+
+                                       it("reports total count", function ()
+                                               local _, total = archive:find("user", { total = true });
+                                               assert.equal(#test_data, total);
+                                       end);
 
 					it("by JID", function ()
 						-- luacheck: ignore 211/err
