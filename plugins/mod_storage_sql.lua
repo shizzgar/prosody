@@ -341,7 +341,7 @@ function archive_store:append(username, key, value, when, with)
 				local result = engine:select(count_sql, host, user, store);
 				if result then
 					for row in result do
-						item_count = row[1];
+						item_count = tonumber(row[1]);
 					end
 				end
 			end);
@@ -501,7 +501,7 @@ function archive_store:find(username, query)
 				.. t_concat(where, " AND "), unpack(args));
 			if stats then
 				for row in stats do
-					total = row[1];
+					total = tonumber(row[1]);
 				end
 			end
 			if query.start == nil and query.with == nil and query["end"] == nil and query.key == nil and query.ids == nil then
@@ -606,7 +606,7 @@ function archive_store:summary(username, query)
 	local counts = {};
 	local earliest, latest = {}, {};
 	for row in result do
-		local with, count = row[1], row[2];
+		local with, count = row[1], tonumber(row[2]);
 		counts[with] = count;
 		earliest[with] = row[3];
 		latest[with] = row[4];
