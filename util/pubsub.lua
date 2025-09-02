@@ -1,5 +1,14 @@
 local events = require "prosody.util.events";
 local cache = require "prosody.util.cache";
+local st = require "prosody.util.stanza";
+
+local xmlns_pubsub = "http://jabber.org/protocol/pubsub";
+
+local function create_encapsulating_item(id, payload, publisher)
+	local item = st.stanza("item", { id = id, publisher = publisher, xmlns = xmlns_pubsub });
+	item:add_child(payload);
+	return item;
+end
 
 local service_mt = {};
 
@@ -674,11 +683,34 @@ function service:get_items(node, actor, ids, resultspec) --> (true, { id, [id] =
 			end
 		end
 	else
+		if resultspec and self.data[node]._archive and self.data[node]._archive.find then
+			local query = {
+				limit = limit;
+				reverse = true;
+				total = true;
+				before = resultspec.before;
+				after = resultspec.after;
+			};
+			local iter, total = self.data[node]._archive:find(self.data[node]._user, query);
+			if not iter then
+				return false, total;
+			end
+			for id, payload, when, publisher in iter do
+				local item = create_encapsulating_item(id, payload, publisher);
+				data[#data+1] = id;
+				data[id] = item;
+			end
+			local first, last;
+			if #data > 0 then
+				first = data[#data];
+				last = data[1];
+			end
+			return true, data, { first = first, last = last, count = total };
+		end
 		for key, value in self.data[node]:items() do
 			data[#data+1] = key;
 			data[key] = value;
-			if limit and #data >= limit then break
-			end
+			if limit and #data >= limit then break end
 		end
 	end
 	return true, data;
